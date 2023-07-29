@@ -1,18 +1,3 @@
-"""
-Token Trim
-------------
-
-import tokentrim as tt
-tt.trim(messages, model, system_message=None, max_token_utilization=0.75)
-
-A Python package to handle message trimming based on model's token limit. This package provides utilities to
-1. calculate the number of tokens used by a list of messages,
-2. shorten a message to fit within a token limit by removing characters from the middle,
-3. trim messages to fit within the model's token limit.
-
-Based on OpenAI's own (best practices.)[https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb]
-"""
-
 import tiktoken
 from typing import List, Dict, Any, Tuple, Optional
 
@@ -99,8 +84,15 @@ def shorten_message_to_fit_limit(message: Dict[str, Any], tokens_needed: int,
     else:
       break
 
-def trim(messages: List[Dict[str, Any]], model: str, system_message: Optional[str] = None, trim_ratio: float = 0.75, return_response_tokens: bool = False) -> Union[List[Dict[str, Any]], Tuple[List[Dict[str, Any]], int]]:
-    """
+
+def trim(
+  messages: List[Dict[str, Any]],
+  model: str,
+  system_message: Optional[str] = None,
+  trim_ratio: float = 0.75,
+  return_response_tokens: bool = False
+) -> Union[List[Dict[str, Any]], Tuple[List[Dict[str, Any]], int]]:
+  """
     Trim a list of messages to fit within a model's token limit.
 
     Args:
@@ -113,48 +105,53 @@ def trim(messages: List[Dict[str, Any]], model: str, system_message: Optional[st
     Returns:
         Trimmed messages and optionally the number of tokens available for response.
     """
-    
-    # Initialize max_tokens
-    max_tokens = int(MODEL_MAX_TOKENS[model] * trim_ratio)
 
-    # Deduct the system message tokens from the max_tokens if system message exists
-    if system_message:
-        system_message_event = {"role": "system", "content": system_message}
-        system_message_tokens = num_tokens_from_messages([system_message_event], model)
-        max_tokens -= system_message_tokens
+  # Initialize max_tokens
+  max_tokens = int(MODEL_MAX_TOKENS[model] * trim_ratio)
 
-        if system_message_tokens > max_tokens:
-            raise ValueError("System message exceeds token limit")
-    
-    final_messages = []
+  # Deduct the system message tokens from the max_tokens if system message exists
+  if system_message:
+    system_message_event = {"role": "system", "content": system_message}
+    system_message_tokens = num_tokens_from_messages([system_message_event],
+                                                     model)
+    max_tokens -= system_message_tokens
 
-    # Reverse the messages so we process oldest messages first
-    messages = messages[::-1]
+    if system_message_tokens > max_tokens:
+      raise ValueError("System message exceeds token limit")
 
-    # Process the messages
-    for message in messages:
-        temp_messages = [message] + final_messages
+  final_messages = []
 
-        if num_tokens_from_messages(temp_messages, model) <= max_tokens:
-            # If adding the next message doesn't exceed the token limit, add it to final_messages
-            final_messages = [message] + final_messages
-        else:
-            # If adding the next message exceeds the token limit, try trimming it
-            shorten_message_to_fit_limit(message, max_tokens - num_tokens_from_messages(final_messages, model), model)
+  # Reverse the messages so we process oldest messages first
+  messages = messages[::-1]
 
-            # If the trimmed message can fit, add it
-            if num_tokens_from_messages([message] + final_messages, model) <= max_tokens:
-                final_messages = [message] + final_messages
+  # Process the messages
+  for message in messages:
+    temp_messages = [message] + final_messages
 
-            # Regardless if the trimmed message fits or not, break
-            break
+    if num_tokens_from_messages(temp_messages, model) <= max_tokens:
+      # If adding the next message doesn't exceed the token limit, add it to final_messages
+      final_messages = [message] + final_messages
+    else:
+      # If adding the next message exceeds the token limit, try trimming it
+      shorten_message_to_fit_limit(
+        message, max_tokens - num_tokens_from_messages(final_messages, model),
+        model)
 
-    # Add system message to the start of final_messages if it exists
-    if system_message:
-        final_messages = [system_message_event] + final_messages
+      # If the trimmed message can fit, add it
+      if num_tokens_from_messages([message] + final_messages,
+                                  model) <= max_tokens:
+        final_messages = [message] + final_messages
 
-    if return_response_tokens:
-        response_tokens = max_tokens - num_tokens_from_messages(final_messages, model)
-        return final_messages, response_tokens
+      # Regardless if the trimmed message fits or not, break
+      break
 
-    return final_messages
+  # Add system message to the start of final_messages if it exists
+  if system_message:
+    final_messages = [system_message_event] + final_messages
+
+  if return_response_tokens:
+    response_tokens = max_tokens - num_tokens_from_messages(
+      final_messages, model)
+    return final_messages, response_tokens
+
+  return final_messages
