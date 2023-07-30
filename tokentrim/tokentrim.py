@@ -1,5 +1,5 @@
 import tiktoken
-from typing import List, Dict, Any, Tuple, Optional
+from typing import List, Dict, Any, Tuple, Optional, Union
 
 MODEL_MAX_TOKENS = {
   'gpt-4': 8192,
@@ -68,21 +68,24 @@ def shorten_message_to_fit_limit(message: Dict[str, Any], tokens_needed: int,
   """
 
   content = message["content"]
-  left_half = content[:len(content) // 2]
-  right_half = content[len(content) // 2:]
 
   while True:
+    total_tokens = num_tokens_from_messages([message], model)
+
+    if total_tokens <= tokens_needed:
+      break
+
+    ratio = tokens_needed / total_tokens
+
+    new_length = int(len(content) * ratio)
+
+    half_length = new_length // 2
+    left_half = content[:half_length]
+    right_half = content[-half_length:]
+
     trimmed_content = left_half + '...' + right_half
     message["content"] = trimmed_content
-    if num_tokens_from_messages([message], model) > tokens_needed:
-      if len(left_half) > len(right_half):
-        # Cut from the left half if it's longer or equal
-        left_half = left_half[:-1]
-      else:
-        # Otherwise cut from the right half
-        right_half = right_half[1:]
-    else:
-      break
+    content = trimmed_content
 
 
 def trim(
@@ -105,6 +108,10 @@ def trim(
     Returns:
         Trimmed messages and optionally the number of tokens available for response.
     """
+
+  # Check if model is valid
+  if model not in MODEL_MAX_TOKENS:
+    raise ValueError(f"Invalid model: {model}")
 
   # Initialize max_tokens
   max_tokens = int(MODEL_MAX_TOKENS[model] * trim_ratio)
