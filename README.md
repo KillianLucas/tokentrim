@@ -2,7 +2,7 @@
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
 
-TokenTrim is a tiny library that intelligently trims OpenAI `messages` to fit within a model's token limit, making it easy to avoid exceeding the maximum token count.
+TokenTrim intelligently trims OpenAI `messages` to fit within a model's token limit, making it easy to avoid exceeding the maximum token count.
 
 It's best suited for use directly in OpenAI API calls:
 
