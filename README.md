@@ -55,4 +55,4 @@ By default, `trim()` returns the trimmed list of messages. If `return_response_t
 
 ## License
 
-This project is licensed under the terms of the MIT license. For more information, refer to the `LICENSE` file in the project's repository.
+This project is licensed under the terms of the MIT license.
