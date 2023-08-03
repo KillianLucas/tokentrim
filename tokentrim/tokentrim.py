@@ -53,7 +53,7 @@ def num_tokens_from_messages(messages: List[Dict[str, Any]],
   for message in messages:
     num_tokens += tokens_per_message
     for key, value in message.items():
-      num_tokens += len(encoding.encode(value))
+      num_tokens += len(encoding.encode(str(value)))
       if key == "name":
         num_tokens += tokens_per_name
 
