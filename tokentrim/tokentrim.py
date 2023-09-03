@@ -18,6 +18,7 @@ def num_tokens_from_messages(messages: List[Dict[str, Any]],
   """
   Function to return the number of tokens used by a list of messages.
   """
+
   # Attempt to get the encoding for the specified model
   try:
     encoding = tiktoken.encoding_for_model(model)
@@ -53,9 +54,13 @@ def num_tokens_from_messages(messages: List[Dict[str, Any]],
   for message in messages:
     num_tokens += tokens_per_message
     for key, value in message.items():
-      num_tokens += len(encoding.encode(str(value)))
-      if key == "name":
-        num_tokens += tokens_per_name
+      try:
+        num_tokens += len(encoding.encode(str(value)))
+        if key == "name":
+          num_tokens += tokens_per_name
+      except:
+        print(f"Failed to parse '{key}'.")
+        pass
 
   num_tokens += 3
   return num_tokens
@@ -75,7 +80,7 @@ def shorten_message_to_fit_limit(message: Dict[str, Any], tokens_needed: int,
     if total_tokens <= tokens_needed:
       break
 
-    ratio = tokens_needed / total_tokens
+    ratio = (tokens_needed) / total_tokens
 
     new_length = int(len(content) * ratio)
 
@@ -134,22 +139,28 @@ def trim(
   # Process the messages
   for message in messages:
     temp_messages = [message] + final_messages
+    temp_messages_tokens = num_tokens_from_messages(temp_messages, model)
 
-    if num_tokens_from_messages(temp_messages, model) <= max_tokens:
+    if temp_messages_tokens <= max_tokens:
       # If adding the next message doesn't exceed the token limit, add it to final_messages
       final_messages = [message] + final_messages
     else:
-      # If adding the next message exceeds the token limit, try trimming it
-      shorten_message_to_fit_limit(
-        message, max_tokens - num_tokens_from_messages(final_messages, model),
-        model)
+      final_messages_tokens = num_tokens_from_messages(final_messages, model)
+      tokens_remaining = max_tokens - final_messages_tokens
 
-      # If the trimmed message can fit, add it
-      if num_tokens_from_messages([message] + final_messages,
-                                  model) <= max_tokens:
-        final_messages = [message] + final_messages
+      # If we have some tokens to play with, we can try trimming the top message.
+      if True:
 
-      # Regardless if the trimmed message fits or not, break
+        # If adding the next message exceeds the token limit, try trimming it
+        # (This only works for non-function call messages)
+        if "function_call" not in message:
+          shorten_message_to_fit_limit(message, tokens_remaining, model)
+
+        # If the trimmed message can fit, add it
+        if num_tokens_from_messages(
+          [message], model) + final_messages_tokens <= max_tokens:
+          final_messages = [message] + final_messages
+
       break
 
   # Add system message to the start of final_messages if it exists
