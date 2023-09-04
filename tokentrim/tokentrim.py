@@ -24,7 +24,6 @@ def num_tokens_from_messages(messages: List[Dict[str, Any]],
   try:
     encoding = tiktoken.encoding_for_model(model)
   except KeyError:
-    print("Warning: model not found. Using cl100k_base encoding.")
     encoding = tiktoken.get_encoding("cl100k_base")
 
   # Token handling specifics for different model types
@@ -46,9 +45,9 @@ def num_tokens_from_messages(messages: List[Dict[str, Any]],
   elif "gpt-4" in model:
     return num_tokens_from_messages(messages, model="gpt-4-0613")
   else:
-    raise NotImplementedError(
-      f"""num_tokens_from_messages() is not implemented for model {model}. See https://github.com/openai/openai-python/blob/main/chatml.md for information on how messages are converted to tokens."""
-    )
+    # Code Llama best estimate. Is this officially documented anywhere?
+    tokens_per_message = 4
+    tokens_per_name = 2
 
   # Calculate the number of tokens
   num_tokens = 0
