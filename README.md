@@ -9,6 +9,8 @@ It's best suited for use directly in OpenAI API calls:
 ```python
 import tokentrim as tt
 
+model = "gpt-4"
+
 response = openai.ChatCompletion.create(
   model=model,
   messages=tt.trim(messages, model) # Trims old messages to fit under model's max token count
