@@ -10,6 +10,7 @@ MODEL_MAX_TOKENS = {
   'gpt-3.5-turbo-16k': 16384,
   'gpt-3.5-turbo-0613': 4096,
   'gpt-3.5-turbo-16k-0613': 16384,
+  'code-llama': 15000, # An estimate, do we have an exact figure anywhere?
 }
 
 
