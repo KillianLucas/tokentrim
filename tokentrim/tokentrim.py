@@ -10,44 +10,49 @@ MODEL_MAX_TOKENS = {
   'gpt-3.5-turbo-16k': 16384,
   'gpt-3.5-turbo-0613': 4096,
   'gpt-3.5-turbo-16k-0613': 16384,
-  'code-llama': 15000, # An estimate, do we have an exact figure anywhere?
 }
 
-
 def num_tokens_from_messages(messages: List[Dict[str, Any]],
-                             model: str) -> int:
+                             model) -> int:
   """
   Function to return the number of tokens used by a list of messages.
   """
 
   # Attempt to get the encoding for the specified model
-  try:
-    encoding = tiktoken.encoding_for_model(model)
-  except KeyError:
+  if model == None:
     encoding = tiktoken.get_encoding("cl100k_base")
+  else:
+    try:
+      encoding = tiktoken.encoding_for_model(model)
+    except KeyError:
+      encoding = tiktoken.get_encoding("cl100k_base")
 
   # Token handling specifics for different model types
-  if model in {
-      "gpt-3.5-turbo-0613",
-      "gpt-3.5-turbo-16k-0613",
-      "gpt-4-0314",
-      "gpt-4-32k-0314",
-      "gpt-4-0613",
-      "gpt-4-32k-0613",
-  }:
-    tokens_per_message = 3
-    tokens_per_name = 1
-  elif model == "gpt-3.5-turbo-0301":
-    tokens_per_message = 4
-    tokens_per_name = -1
-  elif "gpt-3.5-turbo" in model:
-    return num_tokens_from_messages(messages, model="gpt-3.5-turbo-0613")
-  elif "gpt-4" in model:
-    return num_tokens_from_messages(messages, model="gpt-4-0613")
-  else:
-    # Code Llama best estimate. Is this officially documented anywhere?
+  if model == None:
+    # Slightly raised numbers for an unknown model / prompt template
+    # In the future this should be customizable
     tokens_per_message = 4
     tokens_per_name = 2
+  else:
+    if model in {
+        "gpt-3.5-turbo-0613",
+        "gpt-3.5-turbo-16k-0613",
+        "gpt-4-0314",
+        "gpt-4-32k-0314",
+        "gpt-4-0613",
+        "gpt-4-32k-0613",
+    }:
+      tokens_per_message = 3
+      tokens_per_name = 1
+    elif model == "gpt-3.5-turbo-0301":
+      tokens_per_message = 4
+      tokens_per_name = -1
+    elif "gpt-3.5-turbo" in model:
+      return num_tokens_from_messages(messages, model="gpt-3.5-turbo-0613")
+    elif "gpt-4" in model:
+      return num_tokens_from_messages(messages, model="gpt-4-0613")
+    else:
+      raise ValueError(f"Model '{model}' not supported. Please specify max_tokens directly.")
 
   # Calculate the number of tokens
   num_tokens = 0
@@ -67,7 +72,7 @@ def num_tokens_from_messages(messages: List[Dict[str, Any]],
 
 
 def shorten_message_to_fit_limit(message: Dict[str, Any], tokens_needed: int,
-                                 model: str) -> None:
+                                 model) -> None:
   """
   Shorten a message to fit within a token limit by removing characters from the middle.
   """
@@ -95,10 +100,11 @@ def shorten_message_to_fit_limit(message: Dict[str, Any], tokens_needed: int,
 
 def trim(
   messages: List[Dict[str, Any]],
-  model: str,
+  model = None,
   system_message: Optional[str] = None,
   trim_ratio: float = 0.75,
-  return_response_tokens: bool = False
+  return_response_tokens: bool = False,
+  max_tokens = None
 ) -> Union[List[Dict[str, Any]], Tuple[List[Dict[str, Any]], int]]:
   """
     Trim a list of messages to fit within a model's token limit.
@@ -109,17 +115,20 @@ def trim(
         system_message: Optional system message to preserve at the start of the conversation.
         trim_ratio: Target ratio of tokens to use after trimming. Default is 0.75, meaning it will trim messages so they use about 75% of the model's token limit.
         return_response_tokens: If True, also return the number of tokens left available for the response after trimming.
+        max_tokens: Instead of specifying a model or trim_ratio, you can specify this directly.
 
     Returns:
         Trimmed messages and optionally the number of tokens available for response.
     """
 
-  # Check if model is valid
-  if model not in MODEL_MAX_TOKENS:
-    raise ValueError(f"Invalid model: {model}")
-
   # Initialize max_tokens
-  max_tokens = int(MODEL_MAX_TOKENS[model] * trim_ratio)
+  if max_tokens == None:
+
+    # Check if model is valid
+    if model not in MODEL_MAX_TOKENS:
+      raise ValueError(f"Invalid model: {model}. Specify max_tokens instead")
+      
+    max_tokens = int(MODEL_MAX_TOKENS[model] * trim_ratio)
 
   # Deduct the system message tokens from the max_tokens if system message exists
   if system_message:

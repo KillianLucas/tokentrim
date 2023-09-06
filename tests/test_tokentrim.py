@@ -1,5 +1,10 @@
 from tokentrim import trim
 
+def test_custom_max_tokens():
+    messages = [{'role': 'user', 'content': 'Hello!'}]
+    max_tokens = 100
+    trim(messages, max_tokens=max_tokens)
+
 def test_trim_complex_function_calls():
     """
     This is an example conversation I had with Open Interpreter. It's long and has many function calls.
@@ -40,4 +45,3 @@ def test_trim_invalid_model():
         pass
     else:
         assert False, "Expected a ValueError to be raised for invalid model"
-
