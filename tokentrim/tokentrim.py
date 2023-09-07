@@ -150,6 +150,8 @@ def trim(
     
     max_tokens -= system_message_tokens
 
+    max_tokens -= system_message_tokens
+
   final_messages = []
 
   # Reverse the messages so we process oldest messages first
