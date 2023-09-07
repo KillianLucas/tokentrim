@@ -139,10 +139,10 @@ def trim(
     system_message_event = {"role": "system", "content": system_message}
     system_message_tokens = num_tokens_from_messages([system_message_event],
                                                      model)
-    max_tokens -= system_message_tokens
-
     if system_message_tokens > max_tokens:
       raise ValueError("System message exceeds token limit")
+
+    max_tokens -= system_message_tokens
 
   final_messages = []
 
