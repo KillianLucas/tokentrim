@@ -5,6 +5,12 @@ def test_custom_max_tokens():
     max_tokens = 100
     trim(messages, max_tokens=max_tokens)
 
+def test_trim_system_message():
+    messages = [{'role': 'system', 'content': 'A' * 10000}]
+    max_tokens = 500
+    messages = trim(messages, max_tokens=max_tokens)
+    assert len(str(messages)) < 10000
+
 def test_trim_complex_function_calls():
     """
     This is an example conversation I had with Open Interpreter. It's long and has many function calls.
@@ -31,7 +37,7 @@ def test_trim_long_message():
 
 def test_trim_preserves_system_message():
     system_message = 'Hello, user!'
-    messages = [{'role': 'user', 'content': 'A' * 100000}]
+    messages = [{'role': 'user', 'content': 'A' * 10000}]
     model = 'gpt-3.5-turbo'
     trimmed = trim(messages, model, system_message=system_message)
     assert trimmed[0]['content'] == system_message
