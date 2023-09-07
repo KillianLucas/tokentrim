@@ -10,6 +10,7 @@ MODEL_MAX_TOKENS = {
   'gpt-3.5-turbo-16k': 16384,
   'gpt-3.5-turbo-0613': 4096,
   'gpt-3.5-turbo-16k-0613': 16384,
+  'code-llama': 1048, # I'm not sure this is correct.
 }
 
 def num_tokens_from_messages(messages: List[Dict[str, Any]],
@@ -52,7 +53,10 @@ def num_tokens_from_messages(messages: List[Dict[str, Any]],
     elif "gpt-4" in model:
       return num_tokens_from_messages(messages, model="gpt-4-0613")
     else:
-      raise ValueError(f"Model '{model}' not supported. Please specify max_tokens directly.")
+      # Slightly raised numbers for an unknown model / prompt template
+      # In the future this should be customizable
+      tokens_per_message = 4
+      tokens_per_name = 2
 
   # Calculate the number of tokens
   num_tokens = 0
