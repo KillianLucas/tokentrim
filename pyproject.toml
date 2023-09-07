@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tokentrim"
-version = "0.1.9"
+version = "0.1.10"
 description = "Easily trim 'messages' arrays for use with GPTs."
 authors = ["Killian Lucas <killian@drinkwater.ai>"]
 

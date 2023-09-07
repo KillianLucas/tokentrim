@@ -136,13 +136,19 @@ def trim(
 
   # Deduct the system message tokens from the max_tokens if system message exists
   if system_message:
+
     system_message_event = {"role": "system", "content": system_message}
     system_message_tokens = num_tokens_from_messages([system_message_event],
                                                      model)
-    max_tokens -= system_message_tokens
 
     if system_message_tokens > max_tokens:
-      raise ValueError("System message exceeds token limit")
+      print("`tokentrim`: Warning, system message exceeds token limit, which is probably undesired. Trimming...")
+      
+      shorten_message_to_fit_limit(system_message_event, max_tokens, model)
+      system_message_tokens = num_tokens_from_messages([system_message_event],
+                                                     model)
+    
+    max_tokens -= system_message_tokens
 
   final_messages = []
 
