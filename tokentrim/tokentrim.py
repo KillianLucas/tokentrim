@@ -10,7 +10,7 @@ MODEL_MAX_TOKENS = {
   'gpt-3.5-turbo-16k': 16384,
   'gpt-3.5-turbo-0613': 4096,
   'gpt-3.5-turbo-16k-0613': 16384,
-  'code-llama': 1048, # I'm not sure this is correct.
+  'code-llama': 2048, # I'm not sure this is correct.
 }
 
 def num_tokens_from_messages(messages: List[Dict[str, Any]],
