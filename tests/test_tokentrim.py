@@ -1,4 +1,6 @@
+import tiktoken
 from tokentrim import trim
+from tokentrim.tokentrim import get_encoding
 
 def test_custom_max_tokens():
     messages = [{'role': 'user', 'content': 'Hello!'}]
@@ -51,3 +53,32 @@ def test_trim_invalid_model():
         pass
     else:
         assert False, "Expected a ValueError to be raised for invalid model"
+
+def test_infinite_loop():
+    """
+    This test checks for regressions that reintroduce the infinite loop
+    mentioned in https://github.com/KillianLucas/tokentrim/issues/3
+    """
+    model = 'gpt-3.5-turbo'
+
+    system_message = "You are a helpful assistant"
+    
+    max_tokens = 50
+
+    messages = [
+        {"role": "user", "content": "hello!"},
+        {"role": "assistant", "content": "how can i help you?"},
+        {"role": "user", "content": "can you write a function that adds two numbers?"},
+        {"role": "assistant", "content": "sure here is the code, {code}"},
+        {"role": "user", "content": "thanks, can you rename the function to add_x_y"}
+    ]
+
+    trimmed = trim(messages, model, max_tokens=max_tokens, system_message=system_message)
+
+    trimmed_content = "\n".join([message['content'] for message in trimmed])
+
+    encoding = get_encoding(model)
+
+    trimmed_tokens = encoding.encode(trimmed_content)
+
+    assert len(trimmed_tokens) <= max_tokens
