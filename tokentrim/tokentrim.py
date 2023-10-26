@@ -2,12 +2,9 @@ import tiktoken
 from typing import List, Dict, Any, Tuple, Optional, Union
 from model_map import MODEL_MAX_TOKENS
 
-def num_tokens_from_messages(messages: List[Dict[str, Any]],
-                             model) -> int:
-  """
-  Function to return the number of tokens used by a list of messages.
-  """
+MAX_ITERATIONS = 12
 
+def get_encoding(model):
   # Attempt to get the encoding for the specified model
   if model == None:
     encoding = tiktoken.get_encoding("cl100k_base")
@@ -16,6 +13,16 @@ def num_tokens_from_messages(messages: List[Dict[str, Any]],
       encoding = tiktoken.encoding_for_model(model)
     except KeyError:
       encoding = tiktoken.get_encoding("cl100k_base")
+
+  return encoding
+
+def num_tokens_from_messages(messages: List[Dict[str, Any]],
+                             model) -> int:
+  """
+  Function to return the number of tokens used by a list of messages.
+  """
+
+  encoding = get_encoding(model)
 
   # Token handling specifics for different model types
   if model == None:
@@ -55,6 +62,7 @@ def num_tokens_from_messages(messages: List[Dict[str, Any]],
       try:
         num_tokens += len(encoding.encode(str(value)))
         if key == "name":
+          print(value)
           num_tokens += tokens_per_name
       except:
         print(f"Failed to parse '{key}'.")
@@ -69,10 +77,13 @@ def shorten_message_to_fit_limit(message: Dict[str, Any], tokens_needed: int,
   """
   Shorten a message to fit within a token limit by removing characters from the middle.
   """
+  iterations = 0
+
+  encoding = get_encoding(model)
 
   content = message["content"]
 
-  while True:
+  while iterations < MAX_ITERATIONS:
     total_tokens = num_tokens_from_messages([message], model)
 
     if total_tokens <= tokens_needed:
@@ -80,15 +91,17 @@ def shorten_message_to_fit_limit(message: Dict[str, Any], tokens_needed: int,
 
     ratio = (tokens_needed) / total_tokens
 
-    new_length = int(len(content) * ratio)
+    new_length = int(len(encoding.encode(content)) * ratio)
 
     half_length = new_length // 2
-    left_half = content[:half_length]
-    right_half = content[-half_length:]
+    left_half = encoding.decode(encoding.encode(content[:half_length]))
+    right_half = encoding.decode(encoding.encode(content[-half_length:]))
 
     trimmed_content = left_half + '...' + right_half
     message["content"] = trimmed_content
     content = trimmed_content
+
+    iterations += 1
 
 
 def trim(
