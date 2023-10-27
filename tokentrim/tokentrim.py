@@ -1,8 +1,9 @@
 import tiktoken
 from typing import List, Dict, Any, Tuple, Optional, Union
-from model_map import MODEL_MAX_TOKENS
+from .model_map import MODEL_MAX_TOKENS
 
 MAX_ITERATIONS = 12
+
 
 def get_encoding(model):
   # Attempt to get the encoding for the specified model
@@ -16,8 +17,8 @@ def get_encoding(model):
 
   return encoding
 
-def num_tokens_from_messages(messages: List[Dict[str, Any]],
-                             model) -> int:
+
+def num_tokens_from_messages(messages: List[Dict[str, Any]], model) -> int:
   """
   Function to return the number of tokens used by a list of messages.
   """
@@ -106,11 +107,11 @@ def shorten_message_to_fit_limit(message: Dict[str, Any], tokens_needed: int,
 
 def trim(
   messages: List[Dict[str, Any]],
-  model = None,
+  model=None,
   system_message: Optional[str] = None,
   trim_ratio: float = 0.75,
   return_response_tokens: bool = False,
-  max_tokens = None
+  max_tokens=None
 ) -> Union[List[Dict[str, Any]], Tuple[List[Dict[str, Any]], int]]:
   """
     Trim a list of messages to fit within a model's token limit.
@@ -133,7 +134,7 @@ def trim(
     # Check if model is valid
     if model not in MODEL_MAX_TOKENS:
       raise ValueError(f"Invalid model: {model}. Specify max_tokens instead")
-      
+
     max_tokens = int(MODEL_MAX_TOKENS[model] * trim_ratio)
 
   # Deduct the system message tokens from the max_tokens if system message exists
@@ -144,12 +145,14 @@ def trim(
                                                      model)
 
     if system_message_tokens > max_tokens:
-      print("`tokentrim`: Warning, system message exceeds token limit, which is probably undesired. Trimming...")
-      
+      print(
+        "`tokentrim`: Warning, system message exceeds token limit, which is probably undesired. Trimming..."
+      )
+
       shorten_message_to_fit_limit(system_message_event, max_tokens, model)
       system_message_tokens = num_tokens_from_messages([system_message_event],
-                                                     model)
-    
+                                                       model)
+
     max_tokens -= system_message_tokens
 
     max_tokens -= system_message_tokens
