@@ -82,3 +82,33 @@ def test_infinite_loop():
     trimmed_tokens = encoding.encode(trimmed_content)
 
     assert len(trimmed_tokens) <= max_tokens
+
+def test_trim_except_function_calls_tokens():
+    """
+    This test checks for token count for input functions
+    mentioned in https://github.com/KillianLucas/tokentrim/issues/8#issue-1964644117
+    """
+    model = 'gpt-3.5-turbo'
+    base_message = {"role": "user", "content": "What is the meaning of life?"}
+    simple_tool = dict(
+        name="get_location",
+        description="Get the user's location",
+        parameters={"type": "object", "properties": {}},
+    )
+    # response = openai.ChatCompletion.create(
+    #     model="gpt-3.5-turbo",
+    #     max_tokens=1,
+    #     messages=[base_message],
+    #     functions=[simple_tool],
+    # )
+    # actual = response.usage.prompt_tokens
+
+    # FUNCTION_OVERHEAD = 16, base_usage = 14, tool_usage = 15
+    # Function overhead is 16: 3 for the system message plus this template.
+    # actual = 16 + 14 + 15 = 45
+
+    trimmed = trim([base_message], model, max_tokens=45/0.75, function_calls=[simple_tool])
+    assert trimmed == [base_message]
+
+    trimmed = trim([base_message], model, max_tokens=44/0.75, function_calls=[simple_tool])
+    assert trimmed != [base_message]
