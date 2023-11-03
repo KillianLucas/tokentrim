@@ -2,7 +2,8 @@
 name = "tokentrim"
 version = "0.1.13"
 description = "Easily trim 'messages' arrays for use with GPTs."
-authors = ["Killian Lucas <killian@drinkwater.ai>"]
+authors = ["Killian Lucas <killian@openinterpreter.com>"]
+readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.8"

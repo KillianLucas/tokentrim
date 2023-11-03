@@ -1,7 +1,6 @@
 import json
 import textwrap
 
-
 # reference:
 # https://gist.github.com/CGamesPlay/dd4f108f27e2eec145eedf5c717318f5
 # https://community.openai.com/t/how-to-calculate-the-tokens-when-using-function-call/266573/24
@@ -51,11 +50,8 @@ def format_object(schema, indent, json_schema):
       for line in textwrap.dedent(value["description"]).strip().split("\n"):
         result += f"{'  '*indent}// {line}\n"
     optional = "" if key in schema.get("required", {}) else "?"
-    comment = (
-      ""
-      if value.get("default") is None
-      else f" // default: {format_default(value)}"
-    )
+    comment = ("" if value.get("default") is None else
+               f" // default: {format_default(value)}")
     result += f"{'  '*indent}{key}{optional}: {value_rendered},{comment}\n"
   result += ("  " * (indent - 1)) + "}"
   return result
@@ -82,12 +78,13 @@ def format_tool(tool):
   result = f"// {tool['description']}\ntype {tool['name']} = ("
   formatted = format_object(json_schema, 0, json_schema)
   if formatted is not None:
-      result += "_: " + formatted
+    result += "_: " + formatted
   result += ") => any;\n\n"
   return result
 
 
 def get_function_calls_token_count(encoder, function_calls):
   head_cnt = 3 + len(encoder.encode(FUNCTION_HEADER_STR))
-  functions_cnt = sum(len(encoder.encode(format_tool(f))) for f in function_calls)
+  functions_cnt = sum(
+    len(encoder.encode(format_tool(f))) for f in function_calls)
   return head_cnt + functions_cnt

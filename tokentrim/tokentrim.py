@@ -1,7 +1,7 @@
 import tiktoken
 from typing import List, Dict, Any, Tuple, Optional, Union
 from .model_map import MODEL_MAX_TOKENS
-from .formmat_function_calls import get_function_calls_token_count
+from .format_function_calls import get_function_calls_token_count
 
 MAX_ITERATIONS = 12
 
@@ -64,7 +64,6 @@ def num_tokens_from_messages(messages: List[Dict[str, Any]], model) -> int:
       try:
         num_tokens += len(encoding.encode(str(value)))
         if key == "name":
-          print(value)
           num_tokens += tokens_per_name
       except:
         print(f"Failed to parse '{key}'.")
@@ -138,9 +137,10 @@ def trim(
       raise ValueError(f"Invalid model: {model}. Specify max_tokens instead")
 
     max_tokens = int(MODEL_MAX_TOKENS[model] * trim_ratio)
-  
+
   if function_calls is not None:
-    function_calls_token_cnt = get_function_calls_token_count(get_encoding(model), function_calls)
+    function_calls_token_cnt = get_function_calls_token_count(
+      get_encoding(model), function_calls)
     max_tokens -= function_calls_token_cnt
 
   # Deduct the system message tokens from the max_tokens if system message exists
