@@ -1,6 +1,7 @@
 import tiktoken
 from typing import List, Dict, Any, Tuple, Optional, Union
 from .model_map import MODEL_MAX_TOKENS
+from .formmat_function_calls import get_function_calls_token_count
 
 MAX_ITERATIONS = 12
 
@@ -111,7 +112,8 @@ def trim(
   system_message: Optional[str] = None,
   trim_ratio: float = 0.75,
   return_response_tokens: bool = False,
-  max_tokens=None
+  max_tokens=None,
+  function_calls: Optional[List[Dict]] = None,
 ) -> Union[List[Dict[str, Any]], Tuple[List[Dict[str, Any]], int]]:
   """
     Trim a list of messages to fit within a model's token limit.
@@ -136,6 +138,10 @@ def trim(
       raise ValueError(f"Invalid model: {model}. Specify max_tokens instead")
 
     max_tokens = int(MODEL_MAX_TOKENS[model] * trim_ratio)
+  
+  if function_calls is not None:
+    function_calls_token_cnt = get_function_calls_token_count(get_encoding(model), function_calls)
+    max_tokens -= function_calls_token_cnt
 
   # Deduct the system message tokens from the max_tokens if system message exists
   if system_message:

@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "tokentrim"
-version = "0.1.12"
+version = "0.1.13"
 description = "Easily trim 'messages' arrays for use with GPTs."
 authors = ["Killian Lucas <killian@drinkwater.ai>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-tiktoken = "^0.4.0"
+tiktoken = ">=0.4.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.3"
