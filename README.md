@@ -11,9 +11,9 @@ import tokentrim as tt
 
 model = "gpt-4"
 
-response = openai.ChatCompletion.create(
-  model=model,
-  messages=tt.trim(messages, model) # Trims old messages to fit under model's max token count
+response = client.chat.completions.create(
+    model=model,
+    messages=tokentrim.trim(messages, model=model),  # Trims old messages to fit under model's max token count
 )
 ```
 
@@ -37,7 +37,7 @@ import tokentrim as tt
 # Force a system_message to be prepended to your messages list. This will not be trimmed.
 system_message = "You are a helpful assistant."
 
-response = openai.ChatCompletion.create(
+response = client.chat.completions.create(
   model=model,
   messages=tt.trim(messages, model, system_message=system_message)
 )
